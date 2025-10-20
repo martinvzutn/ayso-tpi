@@ -1,0 +1,25 @@
+services:
+  virtualbox-app:
+    build: ./virtualbox-app
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./virtualbox-app:/app
+
+  docker-app:
+    build: ./docker-app
+    ports:
+      - "5002:5000"
+    volumes:
+      - ./docker-app:/app
+
+  monitor:
+    build: ./monitor-app
+    environment:
+      - TARGETS=http://virtualbox-app:5000,http://docker-app:5000
+      - INTERVAL=10
+    ports:
+      - "8000:5000"
+    depends_on:
+      - virtualbox-app
+      - docker-app      
