@@ -1,6 +1,6 @@
 # Trabajo Práctico Integrador - Arquitectura y Sistemas Operativos
 
-Este repositorio es parte de un trabajo práctico para la materia **Arquitectura y Sistemas Operativos**, realizado por los integrantes **Juan** y **Pepe**. El objetivo es demostrar cómo diferentes aplicaciones pueden interactuar entre sí mediante **Docker Compose**.
+Este repositorio es parte del **TPI** para la materia **Arquitectura y Sistemas Operativos** de la **Tecnicatura Universitaria en Programacion a Distancia**, realizado por los integrantes **Pablo Vera (comisión 13)** y **Martin Vazquez (comisión 8)**. El objetivo es demostrar cómo diferentes aplicaciones ejecutandose en contedores pueden interactuar entre sí muy facil mente mediante el uso de **Docker Compose**.
 
 ## Descripción del Proyecto
 
@@ -13,7 +13,7 @@ El proyecto consta de tres aplicaciones:
 ### Características
 
 - **docker-app** y **virtualbox-app** utilizan volúmenes para permitir modificar los archivos HTML y ver los cambios en tiempo real sin necesidad de reconstruir o reiniciar los contenedores.
-- **monitor-app** verifica periódicamente el estado de las otras dos aplicaciones y expone un endpoint `/status` que muestra si están activas.
+- **monitor-app** verifica periódicamente el estado de las otras dos aplicaciones y expone un endpoint `/status` que muestra si están activas o no.
 
 ## Ventajas de Docker Compose
 
@@ -32,11 +32,11 @@ Si hubiéramos utilizado `docker run` en lugar de Docker Compose, habría sido n
 docker network create my-network
 ```
 
-2. Ejecutar cada contenedor y conectarlo a la red:
+2. Ejecutar manualmente cada contenedor y conectarlo a la red:
 ```sh
-docker run -d --name virtualbox-app --network my-network -p 5001:5000 virtualbox-app
-docker run -d --name docker-app --network my-network -p 5002:5000 docker-app
-docker run -d --name monitor --network my-network -p 8000:5000 -e TARGETS=http://virtualbox-app:5000,http://docker-app:5000 -e INTERVAL=10 monitor-app
+docker run --rm -d --name virtualbox-app --network my-network -p 5001:5000 -v $(pwd)/virtualbox-app:/app virtualbox-app
+docker run --rm -d --name docker-app --network my-network -p 5002:5000 -v $(pwd)/docker-app:/app docker-app
+docker run --rm -d --name monitor --network my-network -p 8000:5000 -e TARGETS=http://virtualbox-app:5000,http://docker-app:5000 -e INTERVAL=10 monitor-app
 ```
 3. Gestionar manualmente las dependencias entre los contenedores.
 
@@ -44,13 +44,15 @@ Con Docker Compose, todo esto se define en un único archivo docker-compose.yml,
 
 ## Cómo Ejecutar el Proyecto
 1. Clona este repositorio
-git clone <URL_DEL_REPOSITORIO>
+```sh
+git clone [https://github.com/martinvzutn/ayso-tpi](https://github.com/martinvzutn/ayso-tpi)
 cd ayso-tpi
+```
 
 2. Construye y ejecuta los servicios con Docker Compose:
 
 ```sh
-docker-compose up
+docker-compose up -d
 ```
 
 3. Accede a las aplicaciones
@@ -71,9 +73,9 @@ docker-compose up
 En Docker Compose, los servicios definidos en el archivo docker-compose.yml se ejecutan dentro de una red Docker predeterminada (a menos que se especifique otra red). Dentro de esta red, los contenedores pueden comunicarse entre sí utilizando los nombres de servicio como si fueran nombres de host.
 
 ¿Cómo funciona?
-Cuando defines un servicio en docker-compose.yml, como virtualbox-app o docker-app, Docker Compose automáticamente asigna un nombre de host al contenedor basado en el nombre del servicio. Esto significa que, en lugar de usar la dirección IP del contenedor (que puede cambiar), puedes referirte al servicio directamente por su nombre.
+Cuando se define un servicio en docker-compose.yml, como virtualbox-app o docker-app, Docker Compose automáticamente asigna un nombre de host al contenedor basado en el nombre del servicio. Esto significa que, en lugar de usar la dirección IP del contenedor (que puede cambiar), se puede puede referir al servicio directamente por su nombre.
 
-Por ejemplo, en tu archivo docker-compose.yml:
+Por ejemplo, en el archivo docker-compose.yml tenemos:
 
 ```yml
 environment:  
@@ -82,6 +84,6 @@ environment:  
 Aquí, monitor utiliza las URLs http://virtualbox-app:5000 y http://docker-app:5000 para comunicarse con los otros dos servicios. Docker resuelve automáticamente estos nombres (virtualbox-app y docker-app) al contenedor correspondiente dentro de la red.
 
 Ventajas de usar nombres de servicio
-1. Evita la dependencia de direcciones IP: Las direcciones IP de los contenedores pueden cambiar cada vez que se reinician. Usar nombres de servicio garantiza que siempre puedas comunicarte con el contenedor correcto.
-2. Configuración más sencilla: No necesitas preocuparte por crear y gestionar nombres de host o direcciones IP manualmente.
-3. Compatibilidad con redes personalizadas: Si defines redes personalizadas en Docker Compose, los nombres de servicio seguirán funcionando dentro de esas redes.
+1. Evita la dependencia de direcciones IP: Las direcciones IP de los contenedores pueden cambiar cada vez que se reinician. Usar nombres de servicio garantiza que siempre se pueda comunicar con el contenedor correcto.
+2. Configuración más sencilla: No hay que preocuparse por crear y gestionar nombres de host o direcciones IP manualmente.
+3. Compatibilidad con redes personalizadas: Si se definen redes personalizadas en Docker Compose, los nombres de servicio seguirán funcionando dentro de esas redes.
